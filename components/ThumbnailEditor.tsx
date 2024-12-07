@@ -40,16 +40,32 @@ export default function EnhancedThumbnailEditor({ backgroundImage }: { backgroun
   const [fontFamily, setFontFamily] = useState('Arial')
   const stageRef = useRef<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [bgImage] = useImage(backgroundImage);
+  const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
 
 
+  // Load the background image
+  useEffect(() => {
+    const loadBgImage = () => {
+      const img = new Image();
+      img.src = backgroundImage;
+      img.onload = () => setBgImage(img);
+    };
+
+    loadBgImage();
+  }, [backgroundImage]);
+
+  // Preload image elements
   useEffect(() => {
     const loadImages = async () => {
       const images: Record<string, HTMLImageElement> = {};
       for (const el of elements) {
         if (el.type === 'image' && el.src) {
-          const [img] = await useImage(el.src);
-          if (img) images[el.id] = img;
+          const img = new Image();
+          img.src = el.src;
+          await new Promise((resolve) => {
+            img.onload = () => resolve(true);
+          });
+          images[el.id] = img;
         }
       }
       setLoadedImages(images);
@@ -121,12 +137,12 @@ export default function EnhancedThumbnailEditor({ backgroundImage }: { backgroun
     const newElements = elements.map((el) =>
       el.id === node.id()
         ? {
-            ...el,
-            x: node.x(),
-            y: node.y(),
-            width: node.width() * scaleX,
-            height: node.height() * scaleY,
-          }
+          ...el,
+          x: node.x(),
+          y: node.y(),
+          width: node.width() * scaleX,
+          height: node.height() * scaleY,
+        }
         : el
     )
     setElements(newElements)
@@ -137,7 +153,7 @@ export default function EnhancedThumbnailEditor({ backgroundImage }: { backgroun
     selectElement(id === selectedId ? null : id)
   }
 
-  
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' && selectedId) {
@@ -217,60 +233,67 @@ export default function EnhancedThumbnailEditor({ backgroundImage }: { backgroun
     <div className="flex flex-col items-center space-y-4">
       <Stage width={1280} height={720} ref={stageRef}>
         <Layer>
-          <KonvaImage image={bgImage} width={1280} height={720} />
+          {bgImage && (
+            <KonvaImage
+              image={bgImage as CanvasImageSource}
+              width={1280}
+              height={720}
+            />
+            )}
           {elements.map((el) => {
-            if (el.type === 'text') {
-              return (
-                <Text
-                  key={el.id}
-                  id={el.id}
-                  x={el.x}
-                  y={el.y}
-                  text={el.text}
-                  fontSize={el.fontSize}
-                  fontFamily={el.fontFamily}
-                  fill={el.fill}
-                  draggable
-                  onDragEnd={handleDragEnd}
-                  onClick={() => handleSelect(el.id)}
-                  onTransformEnd={handleTransformEnd}
-                />
-              )
-            } else if (el.type === 'rect') {
-              return (
-                <Rect
-                  key={el.id}
-                  id={el.id}
-                  x={el.x}
-                  y={el.y}
-                  width={el.width}
-                  height={el.height}
-                  fill={el.fill}
-                  draggable
-                  onDragEnd={handleDragEnd}
-                  onClick={() => handleSelect(el.id)}
-                  onTransformEnd={handleTransformEnd}
-                />
-              )
-            } else if (el.type === 'image') {
+              if (el.type === 'text') {
+                return (
+                  <Text
+                    key={el.id}
+                    id={el.id}
+                    x={el.x}
+                    y={el.y}
+                    text={el.text}
+                    fontSize={el.fontSize}
+                    fontFamily={el.fontFamily}
+                    fill={el.fill}
+                    draggable
+                    onDragEnd={handleDragEnd}
+                    onClick={() => handleSelect(el.id)}
+                    onTransformEnd={handleTransformEnd}
+                  />
+                )
+              } else if (el.type === 'rect') {
+                return (
+                  <Rect
+                    key={el.id}
+                    id={el.id}
+                    x={el.x}
+                    y={el.y}
+                    width={el.width}
+                    height={el.height}
+                    fill={el.fill}
+                    draggable
+                    onDragEnd={handleDragEnd}
+                    onClick={() => handleSelect(el.id)}
+                    onTransformEnd={handleTransformEnd}
+                  />
+                )
+              } else if (el.type === 'image') {
+                const img = loadedImages[el.id];
 
-              return (
-                <KonvaImage
-                  key={el.id}
-                  id={el.id}
-                  x={el.x}
-                  y={el.y}
-                  width={el.width}
-                  height={el.height}
-                  image={loadedImages[el.id]}
-                  draggable
-                  onDragEnd={handleDragEnd}
-                  onClick={() => handleSelect(el.id)}
-                  onTransformEnd={handleTransformEnd}
-                />
-              )
-            }
-          })}
+                return (
+                  <KonvaImage
+                    key={el.id}
+                    id={el.id}
+                    x={el.x}
+                    y={el.y}
+                    width={el.width}
+                    height={el.height}
+                    image={img as CanvasImageSource}
+                    draggable
+                    onDragEnd={handleDragEnd}
+                    onClick={() => handleSelect(el.id)}
+                    onTransformEnd={handleTransformEnd}
+                  />
+                )
+              }
+            })}
           {selectedId && (
             <Transformer
               nodes={stageRef.current?.findOne(`#${selectedId}`)}
