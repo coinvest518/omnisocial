@@ -4,8 +4,15 @@ import dbConnect from '../../lib/dbConnect';
 import User from '../../models/User';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./auth/[...nextauth]"; // Adjust this import path as necessary
+import { combinedModels } from '../../models/combinedModels'; // Import combined models
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+// Extend the NextApiRequest interface
+interface ExtendedNextApiRequest extends NextApiRequest {
+  ip: string; // Add the ip property
+  get: (name: string) => string | undefined; // Add the get method
+}
+
+export default async function handler(req: ExtendedNextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
@@ -38,7 +45,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ message: 'Insufficient credits' });
     }
 
+    // Log the template usage as a user interaction
+    const interaction = new combinedModels.UserInteraction({
+      userId: session.user.id,
+      actionType: 'template_usage',
+      details: {
+        templateId,
+        content,
+      },
+      timestamp: new Date(),
+      metadata: {
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] || 'unknown',
+      },
+    });
+
+    await interaction.save(); // Save the interaction to the database
+
+    // Deduct credits after logging the interaction
     await User.findByIdAndUpdate(session.user.id, {
+      $inc: { credits: -1 }, // Decrement credits by 1
       $push: {
         templateUsage: {
           templateId,

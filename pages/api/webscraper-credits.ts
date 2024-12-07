@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth/[...nextauth]';
 import dbConnect from '../../lib/dbConnect'; // Adjust the path as necessary
 import User from '../../models/User';
-import TrainedData from '../../models/trainedData';
+import { combinedModels } from '../../models/combinedModels'; // Check this import
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // Store the trained data
-    await TrainedData.create({
+    await combinedModels.TrainingData.create({
       userId: session.user.id,
       taskType,
       content,

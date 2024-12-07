@@ -5,36 +5,40 @@
       "dom",
       "dom.iterable",
       "esnext"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noUnusedLocals": true,
+    ], // No changes here
+    "allowJs": true, // May be necessary if using JS files
+    "skipLibCheck": true, // No changes here
+    "strict": true, // Recommended; no changes
+    "forceConsistentCasingInFileNames": true, // Recommended; no changes
+    "esModuleInterop": true, // Recommended for compatibility; no changes
+    "module": "ESNext", // Use ESNext modules
+    "moduleResolution": "node", // No changes here
+    "resolveJsonModule": true, // No changes here
+    "isolatedModules": true, // Recommended for `ts-node`; no changes
     "jsx": "preserve",
-    "incremental": true,
-    "baseUrl": "./",
+    "incremental": true, // No changes here
+    "baseUrl": "./", // Important for module resolution relative paths
     "paths": {
-      "@/*": ["./*"],
-
+      "@/*": [
+        "./*"
+      ],
       "@components/*": [
         "components/*"
-      ]
-    }
+      ] // Your custom path aliases (no change)
+    },
+    "outDir": "./.ts-build" // Specify an output directory so ts-node will compile .ts files in memory
+    ,
+    "noEmit": true
   },
   "include": [
-    "MyNextJSApp/next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "MyNextJSApp/types/**/*.d.ts"
-, "models/User.js"  ],
+    "next-env.d.ts", // Next.js type definitions
+    "**/*.ts", // Include all TypeScript files
+    "**/*.tsx", // Include all TSX files
+    "types/**/*.d.ts", // Include any type definition files
+    "models/*.js", // Include your model files (if they are .js)
+    "scripts/*.ts" // Include your script files
+  ],
   "exclude": [
     "node_modules"
-  ]
+  ] // Exclude node_modules (no change)
 }

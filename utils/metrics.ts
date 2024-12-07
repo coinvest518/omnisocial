@@ -6,7 +6,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+const hf = new HfInference(process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY);
 
 export const DEFAULT_METRICS: Metrics = {
   views: 0,
@@ -34,32 +34,44 @@ export const DEFAULT_METRICS: Metrics = {
 };
 
 export async function generateContentSuggestions(topic: string): Promise<string[]> {
-  try {
-    const completion = await openai.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: "You are a content strategy expert. Generate 4 unique content ideas related to the given topic. Make them specific and actionable. Keep each suggestion under 100 characters to comply with API limits."
-        },
-        {
-          role: "user",
-          content: `Generate 4 unique content ideas related to: ${topic}`
-        }
-      ],
-      model: "gpt-3.5-turbo",
-    });
+  const maxRetries = 3; // Maximum number of retries
+  const retryDelay = 2000; // Delay in milliseconds before retrying
 
-    const suggestions = completion.choices[0].message.content
-      ?.split('\n')
-      .filter(Boolean)
-      .map(suggestion => suggestion.slice(0, 100))
-      || [];
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const completion = await openai.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: "You are a content strategy expert. Generate 4 unique content ideas related to the given topic. Make them specific and actionable. Keep each suggestion under 100 characters to comply with API limits."
+          },
+          {
+            role: "user",
+            content: `Generate 4 unique content ideas related to: ${topic}`
+          }
+        ],
+        model: "gpt-3.5-turbo",
+      });
 
-    return suggestions.slice(0, 4);
-  } catch (error) {
-    console.error('Error generating content suggestions:', error instanceof Error ? error.message : error);
-    throw new Error('Failed to generate content suggestions');
+      const suggestions = completion.choices[0].message.content
+        ?.split('\n')
+        .filter(Boolean)
+        .map(suggestion => suggestion.slice(0, 100))
+        || [];
+
+      return suggestions.slice(0, 4);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('503')) {
+        console.warn(`Attempt ${attempt + 1} failed: ${error.message}. Retrying...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay)); // Wait before retrying
+      } else {
+        console.error('Error generating content suggestions:', error instanceof Error ? error.message : error);
+        throw new Error('Failed to generate content suggestions');
+      }
+    }
   }
+
+  throw new Error('Max retries reached. Failed to generate content suggestions.');
 }
 
 export async function getTopicMetrics(topic: string): Promise<Metrics> {
@@ -74,10 +86,10 @@ export async function getTopicMetrics(topic: string): Promise<Metrics> {
 
     
     // Create custom metrics based on sentiment and suggestions
-    const performance: PerformanceMetrics = {
-        views: historicalMetrics.averageViewsPerSuggestion * suggestions.length,
-        likes: historicalMetrics.averageLikesPerSuggestion * suggestions.length,
-        shares: historicalMetrics.averageSharesPerSuggestion * suggestions.length,
+    const performance: PerformanceMetrics = { 
+      views: historicalMetrics.averageViewsPerSuggestion * Math.random() * 5,
+      likes: historicalMetrics.averageLikesPerSuggestion * Math.random() * 5,
+      shares: historicalMetrics.averageSharesPerSuggestion * Math.random() * 5,
         engagementRate: (sentiment.positiveRatio * 100) / suggestions.length, // Adjust if you have historical data
         conversionRate: sentiment.positiveRatio,
         averageTimeSpent: historicalMetrics.averageTimeSpent, // From historical data
@@ -108,11 +120,11 @@ async function fetchHistoricalMetrics(topic: string): Promise<{
 }> {
   // Example: Replace with actual API call or database query
   return {
-    averageViewsPerSuggestion: 150, // Average views per suggestion from historical data
-    averageLikesPerSuggestion: 30,  // Average likes per suggestion from historical data
-    averageSharesPerSuggestion: 10, // Average shares per suggestion from historical data
-    averageTimeSpent: 7,            // Average time spent in minutes
-    longTermEngagement: 50,         // Long-term engagement metric
+    averageViewsPerSuggestion: Math.random() * 200,
+    averageLikesPerSuggestion: Math.random() * 50,
+    averageSharesPerSuggestion: Math.random() * 20,
+    averageTimeSpent: Math.random() * 10 + 5,
+    longTermEngagement: Math.random() * 80,
   };
 }
 

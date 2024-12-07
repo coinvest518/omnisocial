@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 
-const SERP_API_KEY = process.env.SERPAPI_API_KEY;
+const SERP_API_KEY = process.env.NEXT_PUBLIC_SERPAPI_API_KEY;
 const SERP_API_URL = 'https://serpapi.com/search.json';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

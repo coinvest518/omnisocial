@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (user.credits < 1) {
         return res.status(403).json({ error: 'Insufficient credits' });
     }
-    const apiKey = process.env.SERPAPI_API_KEY; // Get SerpApi API key from environment variables
+    const apiKey = process.env.NEXT_PUBLIC_SERPAPI_API_KEY; // Get SerpApi API key from environment variables
     if (!apiKey) {
       throw new Error('SERPAPI_API_KEY environment variable not set');
     }

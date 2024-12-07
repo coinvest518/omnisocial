@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const user = await User.findById(session.user.id);
 
     const { prompt, modelId }: { prompt: string; modelId: ModelId } = req.body; // Specify the types here
-    const huggingfaceApiKey = process.env.HUGGINGFACE_API_KEY;
+    const huggingfaceApiKey = process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY;
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
   }
@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
     if (!huggingfaceApiKey) {
-      throw new Error('HUGGINGFACE_API_KEY is not configured');
+      throw new Error(' NEXT_PUBLIC_HUGGINGFACE_API_KEY is not configured');
     }
 
       // Validate the model ID

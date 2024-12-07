@@ -27,7 +27,7 @@ const CardGrid: React.FC<Props> = ({cards}) => {
                             <i className="fas fa-robot"></i>
                         </div>
                         <h3 className="mb-2 text-lg font-bold text-white">Want to integrate AI into your business?</h3>
-                        <a href="" target="_blank"
+                        <a href="https://www.picktime.com/omniai" target="_blank"
                            rel="noopener noreferrer"
                            className="mt-5 inline-block px-6 py-2 text-sm font-medium bg-white text-indigo-500 rounded-full shadow-md hover:bg-opacity-90">Talk
                             to me

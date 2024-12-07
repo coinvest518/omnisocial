@@ -229,14 +229,16 @@ export default function UserDashboard() {
 
     return (
       <>
+        <div className="max-w-7xl mx-auto"> {/* Or max-w-screen, max-w-5xl, etc. */}
+
         <Card>
           <CardHeader>
             <CardTitle>Your Hashtags</CardTitle>
           </CardHeader>
           <CardContent>
             {userHashtags.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {userHashtags.map((hashtag: { _id: React.Key | null | undefined; tag: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; }) => (
+              <div className="flex flex-wrap gap-2 overflow-x-auto">
+              {userHashtags.map((hashtag: { _id: React.Key | null | undefined; tag: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; }) => (
                   <Badge key={hashtag._id} variant="secondary" className="text-sm py-1 px-2">
                     {hashtag.tag}
                   </Badge>
@@ -253,8 +255,8 @@ export default function UserDashboard() {
             <CardTitle>Your Artwork</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {userThumbnails.map((thumbnail: { _id: React.Key | null | undefined; url: string | StaticImport; }) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-x-auto ">
+          {userThumbnails.map((thumbnail: { _id: React.Key | null | undefined; url: string | StaticImport; }) => (
                 <div key={thumbnail._id} className="relative w-full h-48">
                   <Image
                     src={thumbnail.url}
@@ -269,14 +271,15 @@ export default function UserDashboard() {
             {userThumbnails.length === 0 && <p>No artwork generated yet.</p>}
           </CardContent>
         </Card>
+        </div>
       </>
     );
   };
 
   const RenderTemplatesTab = () => (
     <div>
+      <div className="flex flex-col h-full">
       <div className="flex space-x-2 mb-4">
-        <div className="relative flex-grow">
           <Input
             placeholder="Search templates..."
             value={searchTerm}
@@ -299,8 +302,8 @@ export default function UserDashboard() {
         </Select>
       </div>
 
-      <ScrollArea className="h-[500px] w-full">
-        {filteredTemplates.map(usage => {
+      <div className="flex-1 overflow-hidden">
+      {filteredTemplates.map(usage => {
           const template = TEMPLATES.find(t => t.id === usage.templateId);
 
           return (
@@ -365,21 +368,21 @@ export default function UserDashboard() {
             </Card>
           );
         })}
-      </ScrollArea>
+      </div>
     </div>
   );
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+<div className="p-6 flex flex-col h-screen max-h-screen overflow-hidden">
+<div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <Link href="/">
           <Button><Plus className="w-4 h-4 mr-2" /> New Template</Button>
         </Link>
       </div>
 
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="flex-1 flex flex-col overflow-hidden">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="overview">
             <FaChartPie className="mr-2" /> Overview
           </TabsTrigger>
@@ -391,9 +394,13 @@ export default function UserDashboard() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview"><RenderOverviewTab /></TabsContent>
-        <TabsContent value="templates"><RenderTemplatesTab /></TabsContent>
-        <TabsContent value="credits">
+        <TabsContent value="overview" className="flex-1 overflow-auto">
+          <RenderOverviewTab />
+        </TabsContent>
+        <TabsContent value="templates" className="flex-1 overflow-auto">
+          <RenderTemplatesTab />
+        </TabsContent>
+        <TabsContent value="credits" className="flex-1 overflow-auto">
           <Card>
             <CardHeader>
               <CardTitle>Credit Management</CardTitle>
