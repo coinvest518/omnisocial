@@ -29,6 +29,7 @@ const fonts = ['Arial', 'Helvetica', 'Times New Roman', 'Courier', 'Verdana', 'G
 
 export default function EnhancedThumbnailEditor({ backgroundImage }: { backgroundImage: string }) {
   const [elements, setElements] = useState<Element[]>([])
+  const [loadedImages, setLoadedImages] = useState<Record<string, HTMLImageElement>>({})
   const [history, setHistory] = useState<Element[][]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
   const [selectedId, selectElement] = useState<string | null>(null)
@@ -39,16 +40,25 @@ export default function EnhancedThumbnailEditor({ backgroundImage }: { backgroun
   const [fontFamily, setFontFamily] = useState('Arial')
   const stageRef = useRef<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [bgImage] = useImage(backgroundImage);
+
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Delete' && selectedId) {
-        handleDelete()
+    const loadImages = async () => {
+      const images: Record<string, HTMLImageElement> = {};
+      for (const el of elements) {
+        if (el.type === 'image' && el.src) {
+          const [img] = await useImage(el.src);
+          if (img) images[el.id] = img;
+        }
       }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedId])
+      setLoadedImages(images);
+    };
+
+    loadImages();
+  }, [elements]);
+
+
 
   const addToHistory = (newElements: Element[]) => {
     const newHistory = history.slice(0, historyIndex + 1)
@@ -127,6 +137,17 @@ export default function EnhancedThumbnailEditor({ backgroundImage }: { backgroun
     selectElement(id === selectedId ? null : id)
   }
 
+  
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' && selectedId) {
+        handleDelete()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedId])
+
   const handleDelete = () => {
     if (selectedId) {
       const newElements = elements.filter((el) => el.id !== selectedId)
@@ -190,7 +211,6 @@ export default function EnhancedThumbnailEditor({ backgroundImage }: { backgroun
       reader.readAsDataURL(file)
     }
   }
-  const [bgImage] = useImage(backgroundImage);
 
 
   return (
@@ -233,7 +253,6 @@ export default function EnhancedThumbnailEditor({ backgroundImage }: { backgroun
                 />
               )
             } else if (el.type === 'image') {
-              const [img] = useImage(el.src || '');
 
               return (
                 <KonvaImage
@@ -243,7 +262,7 @@ export default function EnhancedThumbnailEditor({ backgroundImage }: { backgroun
                   y={el.y}
                   width={el.width}
                   height={el.height}
-                  image={img}
+                  image={loadedImages[el.id]}
                   draggable
                   onDragEnd={handleDragEnd}
                   onClick={() => handleSelect(el.id)}
